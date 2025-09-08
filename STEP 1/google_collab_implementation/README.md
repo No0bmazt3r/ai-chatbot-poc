@@ -6,17 +6,14 @@ This guide explains how to use the provided Python script in Google Colab to con
 
 1.  **A Google Account**: To use Google Colab.
 2.  **A Gemini API Key**: You can get one from [Google AI Studio](https://aistudio.google.com/app/apikey).
-3.  **Your CSV File**: The script assumes your file is named `original.csv`. If it has a different name, you will need to edit the script.
+3.  **Your CSV File**: Have your CSV file ready on your local machine.
 
 ## 🚀 Steps to Run
 
 ### Step 1: Set Up Your Colab Notebook
 
 1.  **Open Google Colab**: Go to [colab.research.google.com](https://colab.research.google.com) and create a new notebook.
-2.  **Upload Your CSV**:
-    *   On the left-hand side, click the **"Files"** icon (folder icon).
-    *   Click the **"Upload to session storage"** button (file with an upward arrow).
-    *   Select and upload your `original.csv` file.
+2.  **Prepare Your CSV**: Have your CSV file ready on your computer. You do not need to upload it manually; the script will prompt you to do so.
 
 ### Step 2: Configure Your API Key
 
@@ -33,18 +30,20 @@ It is highly recommended to use Colab's **Secrets Manager** to keep your API key
 1.  Copy the entire content of the `colab_embedding_pipeline.py` file.
 2.  Paste it into a single cell in your Colab notebook.
 3.  Run the cell by clicking the **"Play"** button or pressing **`Shift + Enter`**.
+4.  When prompted, click the **"Choose Files"** button and select your CSV file.
 
 ## 🔎 What the Script Does
 
 The script will execute the following actions in order:
 
-1.  **Install Libraries**: It will automatically install `google-generativeai` and `pandas` using `!pip`.
-2.  **Convert CSV to JSON**: It reads `original.csv`, converts it into a structured JSON format, and saves it as `output.json` in your Colab environment.
-3.  **Generate Embeddings**:
+1.  **Install Libraries**: It will automatically install `google-generativeai` and `pandas`.
+2.  **Prompt for Upload**: It will display a button to let you upload your CSV file.
+3.  **Convert CSV to JSON**: It reads the uploaded CSV, converts it into a structured JSON format, and saves it as `output.json`.
+4.  **Generate Embeddings**:
     *   It loads the `output.json` file.
     *   It processes each record, converting it into a clean text format.
     *   It sends the text to the Gemini API to get a numerical representation (embedding).
     *   It saves all the generated embeddings into a final `embeddings.json` file.
-4.  **Download the Final File**: Once finished, it will automatically trigger a download prompt in your browser for the `embeddings.json` file.
+5.  **Download the Final File**: Once finished, it will automatically trigger a download prompt in your browser for the `embeddings.json` file.
 
 You can monitor the progress in the output of the Colab cell.

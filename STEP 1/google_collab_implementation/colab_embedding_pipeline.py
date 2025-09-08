@@ -41,6 +41,7 @@ import google.generativeai as genai
 import json
 import pandas as pd
 import time
+import io
 from google.colab import userdata, files
 
 # Retrieve the API key from Colab secrets
@@ -52,23 +53,37 @@ print("API key configured.")
 print("="*50)
 
 
-# BLOCK 3: CONVERT CSV TO JSON
+# BLOCK 3: UPLOAD CSV AND CONVERT TO JSON
 # ------------------------------------------------------------------------------
 # What it does:
-# Reads the `original.csv` file (which you should have uploaded to Colab)
-# into a pandas DataFrame. It then converts this table-like structure into a
-# list of JSON objects, where each object represents a row from the CSV.
-# Finally, it saves this list to a new file named `output.json`.
+# Prompts the user to upload a CSV file directly in the notebook.
+# It reads the uploaded file's content from memory into a pandas DataFrame,
+# converts the table into a list of JSON records, and saves it to `output.json`.
 # Why it's here:
-# JSON is a more flexible format for handling semi-structured data and is easier
-# to work with programmatically when preparing data for an API. This step
-# standardizes the input for the embedding process.
+# This makes the script more interactive and user-friendly by removing the need
+# for manual file uploads through the sidebar. It directly integrates the
+# file-selection process into the script's execution flow.
 # ------------------------------------------------------------------------------
-print("BLOCK 3: Converting CSV to JSON...")
+print("BLOCK 3: Upload CSV and Convert to JSON...")
+print("Please select the CSV file to upload.")
+
 try:
-    # Define the name of your CSV file. Change if yours is different.
-    csv_file = "original.csv"
-    df = pd.read_csv(csv_file)
+    # Trigger the Colab file upload dialog
+    uploaded = files.upload()
+
+    # Check if any file was uploaded
+    if not uploaded:
+        raise ValueError("No file was uploaded. Please run the cell again.")
+
+    # Get the name and content of the first uploaded file
+    csv_file_name = next(iter(uploaded))
+    if not csv_file_name.lower().endswith('.csv'):
+        raise ValueError(f"The uploaded file '{csv_file_name}' is not a CSV file.")
+        
+    csv_content = uploaded[csv_file_name]
+
+    # Read the CSV content from memory (bytes) into a DataFrame
+    df = pd.read_csv(io.BytesIO(csv_content))
 
     # Convert the DataFrame to a list of dictionaries (JSON records)
     data_json = df.to_dict(orient="records")
@@ -77,10 +92,11 @@ try:
     with open("output.json", "w") as f:
         json.dump(data_json, f, indent=4)
 
-    print(f"CSV '{csv_file}' converted to 'output.json' with {len(data_json)} records.")
-except FileNotFoundError:
-    print(f"ERROR: The file '{csv_file}' was not found.")
-    print("Please upload your CSV file to the Colab session storage.")
+    print(f"CSV '{csv_file_name}' converted to 'output.json' with {len(data_json)} records.")
+
+except Exception as e:
+    print(f"ERROR: An error occurred during file upload or conversion: {e}")
+
 print("="*50)
 
 
