@@ -1,65 +1,77 @@
-# STEP 3.2: Full Setup & Vector Index Configuration
+# STEP 3.2: Full Setup - Database, Data Import, and Vector Index
 
-This guide follows the prerequisite setup. Here, you will connect to your newly created MongoDB Atlas cluster, create the necessary database structure, and configure the vector search index. This index is the core component that enables fast semantic search on your embeddings.
-
----
-
-## Part 1: Download and Install MongoDB Compass
-
-If you haven't already, you need to install MongoDB Compass. It is the official graphical user interface (GUI) for MongoDB and allows you to easily manage your database.
-
-1.  **Go to the Download Page**:
-    *   Visit the [MongoDB Compass Download Page](https://www.mongodb.com/try/download/compass).
-
-2.  **Download and Install**:
-    *   The website should auto-select the correct version for your operating system.
-    *   Download the installer and follow the on-screen instructions to install it on your system.
+This guide details the full setup process for MongoDB Atlas. You will create your database structure, connect to it, import the data generated in STEP 1, and create the essential vector search index.
 
 ---
 
-## Part 2: Connect to Your Atlas Cluster with Compass
+## Part 1: Create Database and Collections in Atlas
 
-Now you will use Compass to connect to the cloud database you created.
+Before connecting, it's best to create the database and collections directly within the MongoDB Atlas web interface.
+
+1.  **Navigate to Database Deployments**:
+    *   Log in to your [MongoDB Atlas account](https://cloud.mongodb.com/).
+    *   On the main screen, click the **"Browse Collections"** button for your cluster.
+
+2.  **Create the Database and First Collection**:
+    *   Click the **"Create Database"** button.
+    *   Enter the following names:
+        *   **Database Name**: `vector_db`
+        *   **Collection Name**: `documents`
+    *   Click **"Create"**.
+
+3.  **Create the Second Collection**:
+    *   Your `vector_db` database will now appear on the left. Hover over it and click the **`+`** sign to create another collection.
+    *   **Collection Name**: `embeddings`
+    *   Click **"Create"**.
+
+Your database structure is now ready for the data.
+
+---
+
+## Part 2: Connect to Your Database with MongoDB Compass
+
+Now, you will get your connection credentials and connect using the Compass GUI.
 
 1.  **Get Your Connection String**:
-    *   Navigate to your [MongoDB Atlas dashboard](https://cloud.mongodb.com/).
-    *   Find your cluster and click the **"Connect"** button.
-    *   In the connection methods pop-up, select **"Compass"**.
-    *   A connection string will be displayed. Click the **"Copy"** button to copy it to your clipboard. It will look something like this:
-        ```
-        mongodb+srv://your_username:<password>@your_cluster.mongodb.net/
-        ```
+    *   Return to your main cluster view by clicking **"Database"** in the top-left.
+    *   Click the **"Connect"** button for your cluster.
+    *   Select **"Compass"** as the connection method and copy the connection string.
 
 2.  **Connect in Compass**:
     *   Open MongoDB Compass.
-    *   The connection string from your clipboard may automatically appear in the connection field. If not, paste it in.
-    *   **Crucially, replace `<password>` in the string with the actual password** you created for your database user in the prerequisite step.
-    *   Click **"Connect"**. You should now be connected to your Atlas cluster.
+    *   Paste the connection string and **replace `<password>` with your actual database user password**.
+    *   Click **"Connect"**.
 
 ---
 
-## Part 3: Create Your Database and Collection
+## Part 3: Import Your Local Data
 
-Your chatbot needs a dedicated place to store its data. You will now create a database and a "collection" (which is similar to a table in a SQL database).
+With Compass connected, you will import the two JSON files you generated in STEP 1.
 
-1.  In Compass, navigate to the **"Databases"** tab in the main view.
-2.  Click the **"Create Database"** button.
-3.  Enter the following names:
-    *   **Database Name**: `chatbot_poc`
-    *   **Collection Name**: `documents`
-4.  Click **"Create Database"**. You will now see `chatbot_poc` in your list of databases.
+1.  **Import Cleaned Data to `documents`**:
+    *   In Compass, select the `vector_db` database on the left, then click on the `documents` collection.
+    *   From the top menu, select **Collection > Import Data**.
+    *   In the dialog, click **"Select a file"** and choose the `output_cleaned.json` file located in the `STEP 1/vscode_implementation` directory.
+    *   Ensure the file type is set to **JSON** and click **"Import"**.
+
+2.  **Import Embeddings to `embeddings`**:
+    *   Now, select the `embeddings` collection on the left.
+    *   Again, select **Collection > Import Data** from the top menu.
+    *   Choose the `embeddings.json` file from the `STEP 1/vscode_implementation` directory.
+    *   Ensure the file type is **JSON** and click **"Import"**.
+
+Your data is now live in your cloud database.
 
 ---
 
 ## Part 4: Create the Vector Search Index
 
-This is the most important step. You will create a special index that allows MongoDB to perform efficient similarity searches on your text embeddings.
+This final, crucial step creates the index that enables semantic search on your newly imported embeddings.
 
-1.  Click on the `chatbot_poc` database, then select the `documents` collection.
-2.  Navigate to the **"Indexes"** tab for the collection.
-3.  Click the **"Create Index"** button.
-4.  In the creation dialog, select the **"JSON Editor"** tab.
-5.  Delete the default content and paste the following JSON configuration exactly as it is:
+1.  In Compass, ensure you have the `vector_db.embeddings` collection selected.
+2.  Click on the **"Indexes"** tab.
+3.  Click **"Create Index"**.
+4.  Select the **"JSON Editor"** tab and paste in the following configuration:
 
     ```json
     {
@@ -86,17 +98,11 @@ This is the most important step. You will create a special index that allows Mon
     }
     ```
 
-6.  **Index Name**: Give the index a name, for example, `vector_index`.
-7.  Click **"Create Index"**.
-
-### Understanding the Index Configuration:
-*   `"path": "vector"`: Tells Atlas to index the `vector` field from our `embeddings.json` data.
-*   `"numDimensions": 768`: Specifies that our vectors have 768 dimensions, which is the standard for the `text-embedding-004` model we used.
-*   `"similarity": "cosine"`: Defines the algorithm to use for comparing vectors. Cosine similarity is a standard choice for text embeddings.
-*   `"type": "filter"`: We are also making the fields inside our `metadata` object searchable, so you can filter your vector search queries (e.g., find similar documents but only from a specific `year`).
+5.  **Index Name**: Give the index a name, such as `vector_index`.
+6.  Click **"Create Index"**. The index will now build in the background.
 
 ---
 
 ## ✅ Full Setup Complete
 
-Your MongoDB Atlas database is now fully configured and ready. The `chatbot_poc.documents` collection is prepared to have the `embeddings.json` data imported, and the vector index is in place to power your AI application.
+Congratulations! Your MongoDB Atlas database is now fully configured, populated with your local data, and equipped with a powerful vector search index. It is ready to be used as the backend for your AI application.
