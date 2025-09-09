@@ -1,122 +1,75 @@
-# AI Chatbot Proof of Concept: Data Preparation Pipeline
+# AI Chatbot Proof of Concept: End-to-End Data Pipeline
 
-This repository contains a Proof of Concept (POC) demonstrating a complete data preparation pipeline. The goal is to take raw data from a CSV file, process it, and convert it into vector embeddings suitable for use in an AI chatbot, semantic search application, or other Retrieval-Augmented Generation (RAG) systems.
+This repository contains a Proof of Concept (POC) demonstrating a complete data preparation and database setup pipeline. The goal is to take raw data from a CSV file, convert it into vector embeddings, and load it into a cloud vector database, making it ready for use in an AI chatbot or semantic search application.
 
-The primary technologies used are **Python**, **Pandas**, and the **Google Gemini API** for embedding generation.
-
-This guide provides two distinct implementation methods for this pipeline: a quick and easy approach using a single **Google Colab** notebook, and a more structured, local approach using **Visual Studio Code**.
+The primary technologies used are **Python**, **Pandas**, the **Google Gemini API**, and **MongoDB Atlas** for vector search.
 
 ---
 
 ## High-Level Workflow
 
-The entire process is broken down into three main stages:
+![Data Preparation Workflow](STEP 1/flow2.png)
 
-1.  **Convert CSV to JSON**: The initial `original.csv` data is converted into a more flexible `output.json` format. This structures the data for easier processing.
+The entire process is broken down into the following stages:
 
-2.  **Clean JSON Data**: The raw JSON output may contain `NaN` values for empty fields, which is invalid in the strict JSON standard. This step cleans the file by replacing all `NaN` values with `null`, ensuring compatibility with databases and APIs. The result is saved as `output_cleaned.json`.
-
-3.  **Generate Embeddings**: The cleaned text data is sent to the Google Gemini API (`text-embedding-004` model) to generate high-quality vector embeddings. The final output, `embeddings.json`, contains the original text, its corresponding vector, and relevant metadata.
-
----
-
-## Method 1: Google Colab (Quickstart)
-
-This method is ideal for quick testing and execution without any local setup. The entire pipeline is encapsulated in a single script designed to be run in one Colab cell.
-
-**Public Colab Link for Immediate Testing: [CSV to Embeddings Pipeline](https://colab.research.google.com/drive/1_y-uXGNMpdQCpXXPoNmpOo6P1e_5Osno?usp=sharing)**
-
-### 📝 Prerequisites
-
-*   A Google Account.
-*   A Google Gemini API Key, which you can obtain from [Google AI Studio](https://aistudio.google.com/app/apikey).
-*   Your source CSV file ready on your computer.
-
-### 🚀 Instructions
-
-1.  **Open the Colab Notebook**: Use the link above or go to [colab.research.google.com](https://colab.research.google.com) and create a new notebook.
-2.  **Configure API Key**: For security, add your Gemini API key to Colab's Secrets Manager.
-    *   Click the **Key icon** on the left sidebar.
-    *   Add a new secret named `GEMINI_API_KEY` and paste your key as the value.
-    *   Ensure the toggle is enabled to make it accessible to the notebook.
-3.  **Copy and Run Code**:
-    *   Copy the entire contents of the script located at: `STEP 1/google_collab_implementation/colab_embedding_pipeline.py`.
-    *   Paste the code into a single cell in your notebook.
-4.  **Execute and Upload**:
-    *   Run the cell. The script will first install dependencies.
-    *   It will then display a file upload button. Click it and select the CSV file you want to process.
-
- The script will automatically execute the full CSV -> JSON -> Clean -> Embeddings workflow, and will trigger a download of the final `embeddings.json` file when complete.
+1.  **Convert CSV to JSON**: The initial `original.csv` data is converted into a more flexible `output.json` format.
+2.  **Clean JSON Data**: The raw JSON is cleaned by replacing non-standard `NaN` values with the valid JSON `null` token.
+3.  **Generate Embeddings**: The cleaned text data is sent to the Google Gemini API (`text-embedding-004` model) to generate vector embeddings.
+4.  **Set Up Cloud Database**: A free-tier MongoDB Atlas cluster is deployed and configured.
+5.  **Import Data & Create Index**: The generated JSON files are imported into the database and a vector search index is created to enable semantic querying.
 
 ---
 
-## Method 2: VS Code (Local Development)
+## STEP 1 & 2: Data Preparation (CSV to Embeddings)
 
-This method is suited for a local development environment and provides a more structured, multi-script approach.
+This phase covers converting the source CSV file into a clean, embedding-rich JSON file. There are two methods to accomplish this.
 
-### 📝 Prerequisites
+### Method 1: Google Colab (Quickstart)
 
-*   Python (version 3.8+ recommended).
-*   A Google Gemini API Key.
-*   Your source CSV file, placed in the `STEP 1/vscode_implementation/` directory and named `original.csv`.
+This method is ideal for quick testing without any local setup. The entire pipeline is encapsulated in a single script.
 
-### 🚀 Instructions
+*   **Instructions**: The full script and setup guide are in the `STEP 1/google_collab_implementation` directory.
+*   **Public Colab Link**: You can run the pipeline directly via this [Google Colab Notebook](https://colab.research.google.com/drive/1_y-uXGNMpdQCpXXPoNmpOo6P1e_5Osno?usp=sharing).
 
-1.  **Set Up Environment**:
-    *   Navigate to the `STEP 1/vscode_implementation/` directory in your terminal.
-    *   Create and activate a Python virtual environment (recommended):
-        ```bash
-        python -m venv .venv
-        source .venv/bin/activate # On macOS/Linux
-        # .\.venv\Scripts\activate # On Windows
-        ```
-    *   Install the required packages:
-        ```bash
-        pip install -r requirements.txt
-        ```
-2.  **Configure API Key**:
-    *   In the same directory, create a file named `.env`.
-    *   Add your API key to this file in the following format:
-        ```
-        GEMINI_API_KEY="YOUR_API_KEY_HERE"
-        ```
-3.  **Run the Scripts in Order**:
-    Execute the following scripts from the `STEP 1/vscode_implementation/` directory one by one.
+### Method 2: VS Code (Local Development)
 
-    1.  **Convert CSV to Raw JSON**:
-        ```bash
-        python 1_convert_csv.py
-        ```
-        *Output: `output.json`*
+This method uses a structured, multi-script approach for local development.
 
-    2.  **Clean the JSON File**:
-        ```bash
-        python 2_clean_json.py
-        ```
-        *Output: `output_cleaned.json`*
-
-    3.  **Generate Embeddings from Cleaned JSON**:
-        ```bash
-        python 3_generate_embeddings.py
-        ```
-        *Output: `embeddings.json`*
+*   **Instructions**: The scripts and a detailed setup guide are in the `STEP 1/vscode_implementation` directory.
+*   **Process**:
+    1.  `1_convert_csv.py`: Converts CSV to raw JSON.
+    2.  `2_clean_json.py`: Cleans the raw JSON (`NaN` -> `null`).
+    3.  `3_generate_embeddings.py`: Generates embeddings from the clean JSON.
 
 ---
 
-## Final Output: `embeddings.json`
+## STEP 3: Database Setup (MongoDB Atlas)
 
-The final output of this pipeline is a JSON file containing a list of objects, where each object is ready to be loaded into a vector database. The structure of each object is:
+This phase covers setting up the cloud vector database to store and query the data.
+
+### Part 1: Prerequisite Setup
+
+This step guides you through creating a free MongoDB Atlas account and cluster, with specific recommendations for users in Malaysia to ensure optimal performance.
+
+*   **Detailed Guide**: [See the full prerequisite setup guide](./STEP%203/prerequisite_setup/README.md)
+
+### Part 2: Full Setup and Data Import
+
+This step guides you through connecting to your database, importing the `documents` and `embeddings` JSON files, and creating the crucial vector search index.
+
+*   **Detailed Guide**: [See the full setup and indexing guide](./STEP%203/full_setup/README.md)
+
+---
+
+## Final Output
+
+The final output of this pipeline is a fully configured MongoDB Atlas collection containing documents with the following structure, ready for semantic search:
 
 ```json
 {
   "id": 0,
   "text": "Production Year: 1995 | Operator: Buffalo China, Inc. | ...",
-  "vector": [
-    -0.0035424572,
-    0.0684739,
-    -0.01528264,
-    ...
-  ],
+  "vector": [-0.0035, 0.0684, ...],
   "metadata": {
     "year": 1995,
     "operator": "Buffalo China, Inc.",
@@ -124,5 +77,3 @@ The final output of this pipeline is a JSON file containing a list of objects, w
   }
 }
 ```
-
-This structured data is now optimized for semantic search and AI-driven chat applications.

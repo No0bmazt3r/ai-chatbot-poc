@@ -4,63 +4,51 @@ This guide details the full setup process for MongoDB Atlas. You will create you
 
 ---
 
-## Part 1: Create Database and Collections in Atlas
+## Part 1: Download and Install MongoDB Compass
 
-Before connecting, it's best to create the database and collections directly within the MongoDB Atlas web interface.
+MongoDB Compass is the official graphical user interface (GUI) for MongoDB. It allows you to easily manage your database, import data, and build indexes.
+
+1.  **Go to the Download Page**:
+    *   Visit the official [MongoDB Compass Download Page](https://www.mongodb.com/try/download/compass).
+
+2.  **Download and Install**:
+    *   The website should automatically detect your operating system (Windows, macOS, or Linux).
+    *   Download the installer and follow the on-screen instructions to install it.
+
+---
+
+## Part 2: Create Database and Collections in Atlas
+
+Before connecting, create the database and collections directly within the MongoDB Atlas web interface.
 
 1.  **Navigate to Database Deployments**:
     *   Log in to your [MongoDB Atlas account](https://cloud.mongodb.com/).
     *   On the main screen, click the **"Browse Collections"** button for your cluster.
 
-2.  **Create the Database and First Collection**:
+2.  **Create the Database and Collections**:
     *   Click the **"Create Database"** button.
     *   Enter the following names:
         *   **Database Name**: `vector_db`
         *   **Collection Name**: `documents`
     *   Click **"Create"**.
-
-3.  **Create the Second Collection**:
-    *   Your `vector_db` database will now appear on the left. Hover over it and click the **`+`** sign to create another collection.
-    *   **Collection Name**: `embeddings`
-    *   Click **"Create"**.
-
-Your database structure is now ready for the data.
+    *   Hover over your new `vector_db` database on the left and click the **`+`** sign to create a second collection named `embeddings`.
 
 ---
 
-## Part 2: Connect to Your Database with MongoDB Compass
+## Part 3: Connect and Import Data with Compass
 
-Now, you will get your connection credentials and connect using the Compass GUI.
+Now, you will connect to your database and import the JSON files from STEP 1.
 
-1.  **Get Your Connection String**:
-    *   Return to your main cluster view by clicking **"Database"** in the top-left.
-    *   Click the **"Connect"** button for your cluster.
-    *   Select **"Compass"** as the connection method and copy the connection string.
-
-2.  **Connect in Compass**:
-    *   Open MongoDB Compass.
-    *   Paste the connection string and **replace `<password>` with your actual database user password**.
-    *   Click **"Connect"**.
-
----
-
-## Part 3: Import Your Local Data
-
-With Compass connected, you will import the two JSON files you generated in STEP 1.
-
-1.  **Import Cleaned Data to `documents`**:
-    *   In Compass, select the `vector_db` database on the left, then click on the `documents` collection.
-    *   From the top menu, select **Collection > Import Data**.
-    *   In the dialog, click **"Select a file"** and choose the `output_cleaned.json` file located in the `STEP 1/vscode_implementation` directory.
-    *   Ensure the file type is set to **JSON** and click **"Import"**.
-
-2.  **Import Embeddings to `embeddings`**:
-    *   Now, select the `embeddings` collection on the left.
-    *   Again, select **Collection > Import Data** from the top menu.
-    *   Choose the `embeddings.json` file from the `STEP 1/vscode_implementation` directory.
-    *   Ensure the file type is **JSON** and click **"Import"**.
-
-Your data is now live in your cloud database.
+1.  **Get Connection String**: In Atlas, click **"Connect"** on your cluster, select **"Compass"**, and copy the connection string.
+2.  **Connect in Compass**: Open Compass, paste the string, **replace `<password>` with your database user's password**, and connect.
+3.  **Import `output_cleaned.json`**: 
+    *   In Compass, select the `vector_db.documents` collection.
+    *   Go to the menu **Collection > Import Data**.
+    *   Select the `output_cleaned.json` file from the `STEP 1/vscode_implementation` directory and click **"Import"**.
+4.  **Import `embeddings.json`**: 
+    *   Select the `vector_db.embeddings` collection.
+    *   Go to **Collection > Import Data**.
+    *   Select the `embeddings.json` file from `STEP 1/vscode_implementation` and click **"Import"**.
 
 ---
 
@@ -91,7 +79,7 @@ This final, crucial step creates the index that enables semantic search on your 
           "path": "metadata.operator"
         },
         {
-          "type": "filter",
+          "type":- "filter",
           "path": "metadata.county"
         }
       ]
@@ -100,6 +88,12 @@ This final, crucial step creates the index that enables semantic search on your 
 
 5.  **Index Name**: Give the index a name, such as `vector_index`.
 6.  Click **"Create Index"**. The index will now build in the background.
+
+### Understanding the Index Configuration:
+*   `"path": "vector"`: Tells Atlas to index the `vector` field from our `embeddings.json` data.
+*   `"numDimensions": 768`: This number is critical. It **must exactly match the output dimension of the embedding model** used to generate the vectors. The Google model we used in STEP 1, `text-embedding-004`, produces vectors with **768 dimensions**.
+*   `"similarity": "cosine"`: Defines the algorithm to use for comparing vectors. Cosine similarity is a standard and effective choice for text-based semantic search.
+*   `"type": "filter"`: We are also making the fields inside our `metadata` object searchable, so you can filter your vector search queries (e.g., find similar documents but only from a specific `year`).
 
 ---
 
