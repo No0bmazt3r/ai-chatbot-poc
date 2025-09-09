@@ -163,7 +163,8 @@ This test will perform a sample vector search to find the 3 most similar documen
 3.  Create a new pipeline with two stages:
 
     **Stage 1: `$vectorSearch`**
-    *   This stage finds the most similar documents. You must replace the placeholder `queryVector` with an actual 768-dimension vector from your data.
+    *   This stage finds the most similar documents. You must replace the placeholder `queryVector` with an actual 768-dimension vector.
+    *   **To generate a sample vector for testing**, you can use this [Google Colab Notebook](https://colab.research.google.com/drive/14mBLV-YgY_sntyW7wZ-2alOykusainkf?authuser=1#scrollTo=TwQ5RJv3F-B1). Simply enter your query text (e.g., "oil production in New York") and run the cell to get a vector you can copy and paste below.
     ```javascript
     {
       index: 'vector_index_poc_rag',

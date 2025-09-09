@@ -16,7 +16,8 @@ The entire process is broken down into the following stages:
 2.  **Clean JSON Data**: The raw JSON is cleaned by replacing non-standard `NaN` values with the valid JSON `null` token.
 3.  **Generate Embeddings**: The cleaned text data is sent to the Google Gemini API (`text-embedding-004` model) to generate vector embeddings.
 4.  **Set Up Cloud Database**: A free-tier MongoDB Atlas cluster is deployed and configured.
-5.  **Import Data & Create Index**: The generated JSON files are imported into the database and a vector search index is created to enable semantic querying.
+5.  **Import & Enrich Data**: The generated JSON files are imported into the database, and the metadata is enriched using an aggregation pipeline.
+6.  **Create & Test Index**: A vector search index is created and then tested to ensure it is working correctly.
 
 ---
 
@@ -53,9 +54,9 @@ This step guides you through creating a free MongoDB Atlas account and cluster, 
 
 *   **Detailed Guide**: [See the full prerequisite setup guide](./STEP%203/prerequisite_setup/README.md)
 
-### Part 2: Full Setup and Data Import
+### Part 2: Full Setup, Data Import, and Indexing
 
-This step guides you through connecting to your database, importing the `documents` and `embeddings` JSON files, and creating the crucial vector search index.
+This step guides you through connecting to your database, importing the data, enriching it with an aggregation pipeline, and finally creating and testing the crucial vector search index.
 
 *   **Detailed Guide**: [See the full setup and indexing guide](./STEP%203/full_setup/README.md)
 
