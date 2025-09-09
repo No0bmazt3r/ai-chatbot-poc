@@ -100,7 +100,37 @@ except Exception as e:
 print("="*50)
 
 
-# BLOCK 4: HELPER FUNCTIONS FOR EMBEDDING
+# BLOCK 4: CLEAN JSON (NaN to null)
+# ------------------------------------------------------------------------------
+# What it does:
+# Reads the raw text of the generated `output.json`, replaces all non-standard
+# `NaN` values with the valid JSON `null`, and saves the result to a new file
+# called `output_cleaned.json`.
+# Why it's here:
+# `NaN` is not valid in the JSON standard. Vector databases and other strict
+# parsers will reject it. This block ensures the data is clean and compliant
+# before we proceed to the embedding step.
+# ------------------------------------------------------------------------------
+print("BLOCK 4: Cleaning generated JSON...")
+try:
+    with open("output.json", 'r') as f:
+        raw_content = f.read()
+    
+    cleaned_content = raw_content.replace('NaN', 'null')
+    
+    with open("output_cleaned.json", 'w') as f:
+        f.write(cleaned_content)
+        
+    print("✅ Replaced NaN with null and saved to 'output_cleaned.json'.")
+except FileNotFoundError:
+    print("ERROR: 'output.json' not found. Please ensure the previous step ran correctly.")
+except Exception as e:
+    print(f"An error occurred during cleaning: {e}")
+
+print("="*50)
+
+
+# BLOCK 5: HELPER FUNCTIONS FOR EMBEDDING
 # ------------------------------------------------------------------------------
 # What they do:
 # - `load_json_with_repair`: Safely loads the `output.json` file. If the JSON is
@@ -113,7 +143,7 @@ print("="*50)
 # These functions break the complex process into small, manageable, and reusable
 # pieces. This makes the main logic cleaner and easier to understand.
 # ------------------------------------------------------------------------------
-print("BLOCK 4: Defining helper functions...")
+print("BLOCK 5: Defining helper functions...")
 
 def load_json_with_repair(filename):
     """Loads a JSON file, attempting to repair it if it's malformed."""
@@ -170,7 +200,7 @@ print("Helper functions are ready.")
 print("="*50)
 
 
-# BLOCK 5: MAIN PROCESSING LOGIC
+# BLOCK 6: MAIN PROCESSING LOGIC
 # ------------------------------------------------------------------------------
 # What it does:
 # This is the core of the script. It orchestrates the entire embedding process:
@@ -186,11 +216,11 @@ print("="*50)
 # This block ties everything together and executes the main goal of the script.
 # The progress updates are crucial for long-running tasks.
 # ------------------------------------------------------------------------------
-print("BLOCK 5: Starting the embedding generation process...")
+print("BLOCK 6: Starting the embedding generation process...")
 
 def process_records(limit=10000):
     """Loads, processes, and generates embeddings for records up to a given limit."""
-    data = load_json_with_repair("output.json")
+    data = load_json_with_repair("output_cleaned.json")
     if not data:
         print("Halting process due to loading error.")
         return
@@ -258,7 +288,7 @@ process_records(limit=10000)
 print("="*50)
 
 
-# BLOCK 6: DOWNLOAD THE FINAL FILE
+# BLOCK 7: DOWNLOAD THE FINAL FILE
 # ------------------------------------------------------------------------------
 # What it does:
 # Uses Colab's `files` module to trigger a browser download for the

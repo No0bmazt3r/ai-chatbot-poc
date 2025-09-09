@@ -1,6 +1,6 @@
 # VS Code Implementation Guide
 
-This guide explains how to run the Python scripts in your local VS Code environment to convert a CSV file and generate Gemini embeddings.
+This guide explains how to run the Python scripts in your local VS Code environment to convert a CSV file, clean the resulting JSON, and generate Gemini embeddings.
 
 ## 📝 Prerequisites
 
@@ -39,7 +39,7 @@ For security, you should **never** hard-code your API key in a script. Use an en
     GEMINI_API_KEY="YOUR_API_KEY_HERE"
     ```
 
-3.  The Python script `2_generate_embeddings.py` is already set up to load this variable automatically.
+3.  The embedding script is already set up to load this variable automatically.
 
 ### Step 3: Run the Scripts in Order
 
@@ -47,19 +47,26 @@ You must run the scripts one after the other.
 
 1.  **First, convert the CSV to JSON**:
     ```bash
-    python 1_convert_csv_to_json.py
+    python 1_convert_csv.py
     ```
-    This will create an `output.json` file.
+    This will create an `output.json` file, which may contain `NaN` values.
 
-2.  **Next, generate the embeddings**:
+2.  **Next, clean the JSON file**:
     ```bash
-    python 2_generate_embeddings.py
+    python 2_clean_json.py
     ```
-    This will read `output.json` and create the final `embeddings.json` file.
+    This reads `output.json` and creates a valid `output_cleaned.json` by replacing `NaN` with `null`.
+
+3.  **Finally, generate the embeddings**:
+    ```bash
+    python 3_generate_embeddings.py
+    ```
+    This will read the cleaned JSON and create the final `embeddings.json` file.
 
 ## ✅ Expected Outcome
 
-After running both scripts, you will have two new files in your directory:
+After running all scripts, you will have three new files:
 
-*   `output.json`: The intermediate JSON representation of your CSV.
-*   `embeddings.json`: The final output containing the text, embedding vectors, and metadata for each record.
+*   `output.json`: The raw, intermediate JSON (with `NaN`).
+*   `output_cleaned.json`: The cleaned, valid JSON (with `null`).
+*   `embeddings.json`: The final output with text, vectors, and metadata.
