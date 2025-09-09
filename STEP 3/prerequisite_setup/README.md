@@ -10,9 +10,9 @@ First, you need to create your Atlas account by navigating to the [MongoDB Atlas
 
 ## Step 2: Deploy Your Cluster
 
-![Data Preparation Workflow](../1.png)
-![Data Preparation Workflow](../2.png)
-![Data Preparation Workflow](../3.png)
+![MongoDB Atlas Deployment Options](1.png)
+![MongoDB Atlas Cluster Configuration](2.png)
+![MongoDB Atlas Region Selection](3.png)
 
 After logging in, you will be prompted to deploy your first database.
 
