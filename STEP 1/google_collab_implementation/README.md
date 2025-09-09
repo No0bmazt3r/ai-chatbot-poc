@@ -4,7 +4,7 @@ This guide explains how to use the provided Python script in Google Colab to con
 
 ## High-Level Workflow
 
-![Data Preparation Workflow](STEP%201/flow2.png)
+![Data Preparation Workflow](flow2.png)
 
 ## 📝 Prerequisites
 
