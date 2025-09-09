@@ -10,8 +10,6 @@ This guide provides two distinct implementation methods for this pipeline: a qui
 
 ## High-Level Workflow
 
-![Data Preparation Workflow](STEP%201/flow2.png)
-
 The entire process is broken down into three main stages:
 
 1.  **Convert CSV to JSON**: The initial `original.csv` data is converted into a more flexible `output.json` format. This structures the data for easier processing.
