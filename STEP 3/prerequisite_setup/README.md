@@ -1,52 +1,64 @@
-# STEP 3.1: Prerequisite Setup for MongoDB
+# MongoDB Atlas Setup Guide for Malaysian Users
 
-This guide covers the initial prerequisites for setting up MongoDB, which will serve as the vector database for our chatbot application. Here, you will create a cloud database account and install a tool to manage it.
-
----
-
-## Part 1: Create a MongoDB Atlas Account
-
-MongoDB Atlas is a fully-managed cloud database service that offers a generous free tier, perfect for this Proof of Concept.
-
-1.  **Navigate to the Signup Page**:
-    *   Open your web browser and go to the [MongoDB Atlas Cloud registration page](https://www.mongodb.com/cloud/atlas/register).
-
-2.  **Register Your Account**:
-    *   You can sign up with your Google account for a faster process or fill out the form with your details (name, email, password).
-
-3.  **Create Your First Cluster**:
-    *   After registration, you will be guided through creating your first database "cluster".
-    *   Choose the **M0 Free Tier**. This is a shared-CPU instance with 512 MB of storage, which is more than enough for our needs and costs nothing.
-    *   Select a cloud provider and region that is geographically closest to you for the best performance (e.g., AWS, Google Cloud, or Azure in a region like `us-east-1`).
-    *   You can leave the additional settings as default. Give your cluster a name if you wish (e.g., `chatbot-poc-cluster`).
-    *   Click **"Create Cluster"**. It will take a few minutes for your new database to be provisioned and deployed.
-
-4.  **Configure Database Access and Network Security**:
-    *   While the cluster is deploying, you will be prompted to create a database user and set up network access.
-    *   **Create a Database User**: Enter a new username and password. **Save these credentials securely**, as you will need them to connect to your database later. A good practice is to use a password manager.
-    *   **Set Network Access**: For this POC, the simplest method is to allow access from anywhere. Select **"Allow Access from Anywhere"** (IP address `0.0.0.0/0`).
-        *   *Note: For a real-world application, you would restrict this to specific IP addresses for security.* 
-    *   Click **"Finish and Close"**.
+This guide provides detailed steps for setting up a free MongoDB Atlas cluster, optimized for users in Malaysia.
 
 ---
 
-## Part 2: Download and Install MongoDB Compass
+## Step 1: Create Your Atlas Account
 
-Mongodb Compass is the official graphical user interface (GUI) for MongoDB. It allows you to visualize, query, and manage your database without writing commands in a terminal.
+First, you need to create your Atlas account by navigating to the [MongoDB Atlas Cloud registration page](https://www.mongodb.com/cloud/atlas/register) and signing up.
 
-1.  **Go to the Download Page**:
-    *   Visit the [MongoDB Compass Download Page](https://www.mongodb.com/try/download/compass).
+## Step 2: Deploy Your Cluster
 
-2.  **Download the Correct Version**:
-    *   The website should automatically detect your operating system (Windows, macOS, or Linux).
-    *   Ensure the correct version is selected and click the **"Download"** button.
+After logging in, you will be prompted to deploy your first database.
 
-3.  **Install MongoDB Compass**:
-    *   Once the download is complete, run the installer.
-    *   Follow the on-screen instructions. The default settings are fine for most users.
+### Choose Your Cluster Type
+1.  You will see several options like **M10**, **Serverless**, and **M0 Free**.
+2.  Select the **M0 Free** option. It is perfect for learning and development.
+    *   No credit card required.
+    *   Includes 512 MB storage, shared RAM, and shared vCPU.
+
+### Configuration Settings
+
+#### Basic Configuration
+1.  **Name**: You can leave the default name `Cluster0` or enter a preferred cluster name. 
+    *   **Important**: The cluster name cannot be changed once it is created.
+
+#### Provider and Region Selection
+2.  **Cloud Provider**: Select **AWS**. It should be pre-selected.
+3.  **Region**: Choose **Singapore (ap-southeast-1)**. 
+    *   This is the closest and recommended server location for users in Malaysia, providing the best performance.
+
+#### Additional Settings
+4.  **Preload sample dataset**: You can check this box if you want sample data to explore (this is optional).
+
+### Advanced Configuration (Optional)
+5.  For this guide, the basic configuration is sufficient. If you need more customization in the future, you can select "Go to Advanced Configuration".
+
+## Step 3: Create Your Cluster
+
+6.  Click the green **"Create Deployment"** button to begin provisioning your cluster. This will take a few minutes.
+
+## Step 4: Final Setup (Security)
+
+While the cluster is being created, you will be prompted to configure security settings.
+
+### Create Database User
+1.  **Username**: Enter a memorable username.
+2.  **Password**: Create a strong password. You can use the "autogenerate" feature.
+3.  **Important**: Securely save these credentials. You will need them to connect to your database.
+4.  Click **"Create User"**.
+
+### Configure Network Access
+5.  Scroll down to the IP Access List section.
+6.  Click **"Add My Current IP Address"** for better security if you will always be working from the same network. For more flexible access for this POC, add `0.0.0.0/0`.
+    *   **IP Address**: `0.0.0.0/0`
+    *   **Description**: `Allow access from anywhere`
+    *   This setting allows global access, which is convenient for development but should be used with caution in production environments.
+
+### Complete Setup
+7.  Click **"Finish and Close"**.
 
 ---
 
-## ✅ Next Steps
-
-Once you have successfully created your MongoDB Atlas account, deployed your free cluster, and installed MongoDB Compass, you are ready for the next phase: connecting to the database and setting up the specific collections and indexes needed for our application.
+Your MongoDB Atlas cluster is now being created and will be ready for use shortly!
