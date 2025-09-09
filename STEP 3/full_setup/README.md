@@ -105,14 +105,38 @@ This pipeline enriches the minimal metadata in the `embeddings` collection with 
 
 ---
 
-## Part 4: Create the Vector Search Index
+## Part 4: Create and Test the Vector Search Index
 
-Now that your data is enriched, you can create the index to enable semantic search.
+This is the final and most important configuration step. You will create the specialized index that allows for high-speed semantic search on your vectors, and then you will run a test query to ensure it is working correctly.
 
-1.  In Compass, ensure you have the `vector_db.embeddings` collection selected.
-2.  Click on the **"Indexes"** tab.
-3.  Click **"Create Index"**.
-4.  Select the **"JSON Editor"** tab and paste in the following configuration:
+### Quick Checklist
+
+1.  **Confirm your collection**: Ensure you are working in **Database:** `vector_db` → **Collection:** `embeddings`.
+2.  **Confirm your data structure**: Each document must have a `vector` field (array of 768 numbers) and a `text` field.
+3.  **Wait for indexing**: After creating the index, you must wait for it to finish building before you can test it.
+
+---
+
+### 1. Create the Index - Visual Editor (Recommended)
+
+1.  In the Atlas UI, navigate to your `vector_db.embeddings` collection.
+2.  Click the **Search** tab (or **Indexes** tab, depending on your UI version).
+3.  Click **Create Search Index**.
+4.  Select the **Visual Editor**.
+5.  Fill in the details exactly as follows:
+    *   **Index Name**: `vector_index_poc_rag`
+    *   Under **Field Mappings**, click **Add Field**.
+    *   **Field Path**: `vector`
+    *   **Type**: `vector`
+    *   **Number of dimensions**: `768`
+    *   **Similarity method**: `cosine`
+6.  Click **Create Search Index** and wait for the index to finish building. Its status will change from "Building" to "Active".
+
+### 2. Create the Index - JSON Editor (Alternative)
+
+1.  In the **Create Search Index** screen, choose the **JSON Editor**.
+2.  Set the **Index Name** to `vector_index_poc_rag`.
+3.  Paste the following JSON definition:
 
     ```json
     {
@@ -122,27 +146,50 @@ Now that your data is enriched, you can create the index to enable semantic sear
           "path": "vector",
           "numDimensions": 768,
           "similarity": "cosine"
-        },
-        {
-          "type": "filter",
-          "path": "metadata.year"
-        },
-        {
-          "type": "filter",
-          "path": "metadata.operator"
-        },
-        {
-          "type": "filter",
-          "path": "metadata.county"
         }
       ]
     }
     ```
+4.  Click **Create Search Index** and wait for it to build.
 
-5.  **Index Name**: Give the index a name, such as `vector_index`, and click **"Create Index"**.
+---
+
+### 3. Test the Index with an Aggregation Pipeline
+
+This test will perform a sample vector search to find the 3 most similar documents to a query vector.
+
+1.  Open **MongoDB Compass** and navigate to the `vector_db.embeddings` collection.
+2.  Click on the **Aggregations** tab.
+3.  Create a new pipeline with two stages:
+
+    **Stage 1: `$vectorSearch`**
+    *   This stage finds the most similar documents. You must replace the placeholder `queryVector` with an actual 768-dimension vector from your data.
+    ```javascript
+    {
+      index: 'vector_index_poc_rag',
+      path: 'vector',
+      queryVector: [/* PASTE YOUR 768-DIMENSION QUERY VECTOR HERE */],
+      numCandidates: 100,
+      limit: 3
+    }
+    ```
+
+    **Stage 2: `$project`**
+    *   This stage cleans up the output to show only the relevant fields and the search score.
+    ```javascript
+    {
+      text: 1,
+      metadata: 1,
+      score: {
+        $meta: 'vectorSearchScore'
+      }
+    }
+    ```
+
+4.  Run the pipeline. If it is successful, you will see the top 3 matching documents as a result.
 
 ---
 
 ## ✅ Full Setup Complete
 
-Congratulations! Your MongoDB Atlas database is now fully configured, populated with enriched data, and equipped with a powerful vector search index. It is ready to be used as the backend for your AI application.
+Congratulations! Your MongoDB Atlas database is now fully configured, populated with enriched data, and equipped with a powerful, tested vector search index. It is ready to be used as the backend for your AI application.
