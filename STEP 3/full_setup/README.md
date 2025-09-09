@@ -1,60 +1,113 @@
 # STEP 3.2: Full Setup - Database, Data Import, and Vector Index
 
-This guide details the full setup process for MongoDB Atlas. You will create your database structure, connect to it, import the data generated in STEP 1, and create the essential vector search index.
+This guide details the full setup process for MongoDB Atlas. You will create your database structure, connect to it, import the data generated in STEP 1, enrich the data using an aggregation pipeline, and finally create the essential vector search index.
 
 ---
 
-## Part 1: Download and Install MongoDB Compass
+## Part 1: Create Database and Collections in Atlas
 
-MongoDB Compass is the official graphical user interface (GUI) for MongoDB. It allows you to easily manage your database, import data, and build indexes.
+First, create the database and collections directly within the MongoDB Atlas web interface.
 
-1.  **Go to the Download Page**:
-    *   Visit the official [MongoDB Compass Download Page](https://www.mongodb.com/try/download/compass).
-
-2.  **Download and Install**:
-    *   The website should automatically detect your operating system (Windows, macOS, or Linux).
-    *   Download the installer and follow the on-screen instructions to install it.
+1.  **Navigate to Database Deployments**: Log in to your [MongoDB Atlas account](https://cloud.mongodb.com/) and click the **"Browse Collections"** button for your cluster.
+2.  **Create Database and Collections**: Click **"Create Database"** and create a database named `vector_db` with two collections inside it: `documents` and `embeddings`.
 
 ---
 
-## Part 2: Create Database and Collections in Atlas
+## Part 2: Connect and Import Data with Compass
 
-Before connecting, create the database and collections directly within the MongoDB Atlas web interface.
+Next, connect to your database using the Compass GUI and import the JSON files from STEP 1.
 
-1.  **Navigate to Database Deployments**:
-    *   Log in to your [MongoDB Atlas account](https://cloud.mongodb.com/).
-    *   On the main screen, click the **"Browse Collections"** button for your cluster.
-
-2.  **Create the Database and Collections**:
-    *   Click the **"Create Database"** button.
-    *   Enter the following names:
-        *   **Database Name**: `vector_db`
-        *   **Collection Name**: `documents`
-    *   Click **"Create"**.
-    *   Hover over your new `vector_db` database on the left and click the **`+`** sign to create a second collection named `embeddings`.
+1.  **Download Compass**: Get the official GUI from the [MongoDB Compass Download Page](https://www.mongodb.com/try/download/compass).
+2.  **Get Connection String**: In Atlas, click **"Connect"** on your cluster, select **"Compass"**, and copy the connection string.
+3.  **Connect in Compass**: Open Compass, paste the string, **replace `<password>` with your database user's password**, and connect.
+4.  **Import `output_cleaned.json`**: Select the `vector_db.documents` collection, go to **Collection > Import Data**, and import the `output_cleaned.json` file from the `STEP 1/vscode_implementation` directory.
+5.  **Import `embeddings.json`**: Select the `vector_db.embeddings` collection, go to **Collection > Import Data**, and import the `embeddings.json` file from the `STEP 1/vscode_implementation` directory.
 
 ---
 
-## Part 3: Connect and Import Data with Compass
+## Part 3: Enrich Data with an Aggregation Pipeline
 
-Now, you will connect to your database and import the JSON files from STEP 1.
+This pipeline enriches the minimal metadata in the `embeddings` collection with the full, detailed information from the `documents` collection.
 
-1.  **Get Connection String**: In Atlas, click **"Connect"** on your cluster, select **"Compass"**, and copy the connection string.
-2.  **Connect in Compass**: Open Compass, paste the string, **replace `<password>` with your database user's password**, and connect.
-3.  **Import `output_cleaned.json`**: 
-    *   In Compass, select the `vector_db.documents` collection.
-    *   Go to the menu **Collection > Import Data**.
-    *   Select the `output_cleaned.json` file from the `STEP 1/vscode_implementation` directory and click **"Import"**.
-4.  **Import `embeddings.json`**: 
-    *   Select the `vector_db.embeddings` collection.
-    *   Go to **Collection > Import Data**.
-    *   Select the `embeddings.json` file from `STEP 1/vscode_implementation` and click **"Import"**.
+1.  In Compass, navigate to the `vector_db` database and select the **`embeddings`** collection.
+2.  Click the **"Aggregations"** tab.
+3.  Build the following pipeline stage by stage:
+
+    **Stage 1: `$lookup`**
+    *   *What it does*: Finds the matching record from the `documents` collection based on the operator name.
+    ```javascript
+    {
+      from: "documents",
+      localField: "metadata.operator",
+      foreignField: "Operator",
+      as: "doc_info"
+    }
+    ```
+
+    **Stage 2: `$set`**
+    *   *What it does*: Takes the first matched document from the `doc_info` array and places it in a new `doc` field for easy access.
+    ```javascript
+    {
+      doc: {
+        $arrayElemAt: ["$doc_info", 0]
+      }
+    }
+    ```
+
+    **Stage 3: `$set`**
+    *   *What it does*: Replaces the old, minimal `metadata` object with a new, fully enriched one using fields from the looked-up document.
+    ```javascript
+    {
+      doc_id: "$doc._id",
+      metadata: {
+        year: "$doc.Production Year",
+        production_date_entered: "$doc.Production Date Entered",
+        operator: "$doc.Operator",
+        county: "$doc.County",
+        town: "$doc.Town",
+        field: "$doc.Field",
+        producing_formation: "$doc.Producing Formation",
+        active_oil_wells: "$doc.Active Oil Wells",
+        inactive_oil_wells: "$doc.Inactive Oil Wells",
+        active_gas_wells: "$doc.Active Gas Wells",
+        inactive_gas_wells: "$doc.Inactive Gas Wells",
+        injection_wells: "$doc.Injection Wells",
+        disposal_wells: "$doc.Disposal Wells",
+        self_use_well: "$doc.Self-use Well",
+        oil_produced_bbl: "$doc['Oil Produced, bbl']",
+        gas_produced_mcf: "$doc['Gas Produced, Mcf']",
+        water_produced_bbl: "$doc['Water produced, bbl']",
+        taxable_gas_mcf: "$doc['Taxable Gas, Mcf']",
+        purchaser_codes: "$doc['Purchaser Codes']",
+        location: "$doc.Location"
+      }
+    }
+    ```
+
+    **Stage 4: `$unset`**
+    *   *What it does*: Cleans up by removing the temporary fields used during the pipeline.
+    ```javascript
+    ["doc_info", "doc"]
+    ```
+
+    **Stage 5: `$merge`**
+    *   *What it does*: This is the final, critical action. It takes the results of the pipeline and merges them back into the `embeddings` collection, updating each document in place.
+    ```javascript
+    {
+      into: "embeddings",
+      on: "_id",
+      whenMatched: "merge",
+      whenNotMatched: "fail"
+    }
+    ```
+
+4.  After building the pipeline, you can preview the results. Once you confirm they are correct, the pipeline will run and update all documents in the `embeddings` collection.
 
 ---
 
 ## Part 4: Create the Vector Search Index
 
-This final, crucial step creates the index that enables semantic search on your newly imported embeddings.
+Now that your data is enriched, you can create the index to enable semantic search.
 
 1.  In Compass, ensure you have the `vector_db.embeddings` collection selected.
 2.  Click on the **"Indexes"** tab.
@@ -79,24 +132,17 @@ This final, crucial step creates the index that enables semantic search on your 
           "path": "metadata.operator"
         },
         {
-          "type":- "filter",
+          "type": "filter",
           "path": "metadata.county"
         }
       ]
     }
     ```
 
-5.  **Index Name**: Give the index a name, such as `vector_index`.
-6.  Click **"Create Index"**. The index will now build in the background.
-
-### Understanding the Index Configuration:
-*   `"path": "vector"`: Tells Atlas to index the `vector` field from our `embeddings.json` data.
-*   `"numDimensions": 768`: This number is critical. It **must exactly match the output dimension of the embedding model** used to generate the vectors. The Google model we used in STEP 1, `text-embedding-004`, produces vectors with **768 dimensions**.
-*   `"similarity": "cosine"`: Defines the algorithm to use for comparing vectors. Cosine similarity is a standard and effective choice for text-based semantic search.
-*   `"type": "filter"`: We are also making the fields inside our `metadata` object searchable, so you can filter your vector search queries (e.g., find similar documents but only from a specific `year`).
+5.  **Index Name**: Give the index a name, such as `vector_index`, and click **"Create Index"**.
 
 ---
 
 ## ✅ Full Setup Complete
 
-Congratulations! Your MongoDB Atlas database is now fully configured, populated with your local data, and equipped with a powerful vector search index. It is ready to be used as the backend for your AI application.
+Congratulations! Your MongoDB Atlas database is now fully configured, populated with enriched data, and equipped with a powerful vector search index. It is ready to be used as the backend for your AI application.
