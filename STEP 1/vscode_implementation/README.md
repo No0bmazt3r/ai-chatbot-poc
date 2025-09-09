@@ -2,6 +2,10 @@
 
 This guide explains how to run the Python scripts in your local VS Code environment to convert a CSV file, clean the resulting JSON, and generate Gemini embeddings.
 
+## High-Level Workflow
+
+![Data Preparation Workflow](../flow2.png)
+
 ## 📝 Prerequisites
 
 1.  **Python**: Make sure Python is installed on your system (version 3.8 or newer is recommended).
