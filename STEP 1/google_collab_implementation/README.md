@@ -2,6 +2,10 @@
 
 This guide explains how to use the provided Python script in Google Colab to convert a CSV file to JSON and then generate embeddings for each record using the Gemini API.
 
+## High-Level Workflow
+
+![Data Preparation Workflow](STEP%201/flow2.png)
+
 ## 📝 Prerequisites
 
 1.  **A Google Account**: To use Google Colab.
